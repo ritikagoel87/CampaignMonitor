@@ -1,0 +1,20 @@
+{
+  "name": "campaign_monitor",
+  "version": "1.0.0",
+  "description": "A set of questions received from Campaign Monitor as a step in the process of interviews for Full-Stack Javascript Developer role.",
+  "main": "Question1.js",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "jest": "^25.4.0",
+    "node-fetch": "^2.6.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Ritika Goel",
+  "license": "ISC"
+}

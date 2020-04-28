@@ -1,0 +1,197 @@
+/*
+    DATABASE SCHEMA
+*/
+
+CREATE TABLE Salesperson
+(
+  [SalespersonID] INT PRIMARY KEY,
+  [Name] VARCHAR(57),
+  [Age] INT,
+  [Salary] MONEY
+)
+;
+
+INSERT INTO Salesperson
+(
+  [SalespersonID],
+  [Name],
+  [Age],
+  [Salary]
+)
+VALUES
+  (1, 'Alice', 61, 140000),
+  (2, 'Bob', 34, 44000),
+  (6, 'Chris', 34, 40000),
+  (8, 'Derek', 41, 52000),
+  (11, 'Emmit', 57, 115000),
+  (16, 'Fred', 38, 38000)
+;
+
+CREATE TABLE Customer
+(
+  [CustomerID] INT PRIMARY KEY,
+  [Name] VARCHAR(57)
+)
+;
+
+INSERT INTO Customer
+(
+  [CustomerID],
+  [Name]
+)
+VALUES
+    (4, 'George'),
+    (6, 'Harry'),
+    (7, 'Ingrid'),
+    (11, 'Jerry')
+;
+
+CREATE TABLE Orders
+(
+  [OrderID] INT PRIMARY KEY,
+  [OrderDate] DATE, 
+  [CustomerID] INT FOREIGN KEY
+      REFERENCES Customer (CustomerID),
+  [SalespersonID] INT FOREIGN KEY
+      REFERENCES Salesperson (SalespersonID),
+  [NumberOfUnits] INT,
+  [CostOfUnit] money
+)
+;
+
+SET dateformat DMY
+INSERT INTO Orders
+(
+  [OrderID],
+  [OrderDate],
+  [CustomerID],
+  [SalespersonID],
+  [NumberOfUnits],
+  [CostOfUnit]
+)
+VALUES
+  (3,  '17/01/2013', 4,  2,  4, 400),
+  (6,  '07/02/2013', 4,  1,  1, 600),
+  (10, '04/03/2013', 7,  6,  2, 300),
+  (17, '15/03/2013', 6,  1,  5, 300),
+  (25, '19/04/2013', 11, 11, 7, 300),
+  (34, '22/04/2013', 11, 11, 100, 26),
+  (57, '12/07/2013', 7,  11, 14, 11),
+  (60, '15/03/2014', 4,  1,  5, 300),
+  (61, '04/03/2015', 4,  6,  2, 300)
+;
+
+/* ------------------------------------------------------------------------------------------- */
+
+
+/*
+    QUESTION 5
+*/
+
+/*
+    A. Return the names of all salespeople that have an order with George
+*/
+
+SELECT DISTINCT s.[Name]
+FROM Salesperson AS s
+INNER JOIN Orders o
+    ON s.SalespersonID = o.SalespersonID
+INNER JOIN Customer c
+    ON c.CustomerID = o.CustomerID
+WHERE c.[Name] = 'George'
+;
+
+/*
+    B. Return the names of all salespeople that do not have any order with George
+*/
+
+SELECT DISTINCT [Name]
+FROM Salesperson
+WHERE SalespersonID NOT IN (
+    SELECT o.SalespersonID
+    FROM Orders o
+    INNER JOIN Customer c
+    ON o.CustomerID = c.CustomerID
+    WHERE [Name] = 'George'
+)
+;
+
+/*
+    C. Return the names of salespeople that have 2 or more orders.
+*/
+
+SELECT [Name]
+FROM Salesperson s
+INNER JOIN Orders o
+    ON s.SalespersonID = o.SalespersonID
+GROUP BY [Name] 
+HAVING COUNT (o.SalespersonID) > 1
+;
+
+/* ------------------------------------------------------------------------------------------- */
+
+
+/*
+    QUESTION 6
+*/
+
+/*
+    A. Return the name of the salesperson with the 3rd highest salary.
+*/
+
+SELECT [Name]
+FROM Salesperson s1
+WHERE 2 = (
+  SELECT COUNT(DISTINCT Salary)
+  FROM Salesperson s2
+  WHERE s2.Salary > s1.Salary
+);
+
+/*
+    B. Create a new roll­up table BigOrders(where columns are CustomerID,
+TotalOrderValue), and insert into that table customers whose total Amount across all
+orders is greater than 1000
+*/
+
+SELECT
+    c.CustomerID,
+    SUM (
+      o.NumberOfUnits * o.CostOfUnit
+    ) AS
+    TotalOrderValue INTO BigOrders
+FROM
+    Customer c
+INNER JOIN Orders o
+    ON c.CustomerID = o.CustomerID
+GROUP BY
+    c.CustomerID
+    HAVING SUM (
+      o.NumberOfUnits * o.CostOfUnit
+    ) > 1000
+;
+
+SELECT * FROM BigOrders;
+
+/*
+    C. Return the total Amount of orders for each month, ordered by year, then month (both in
+descending order)
+*/
+
+SELECT
+    MONTH(o.OrderDate) [Month],
+    YEAR(o.OrderDate) [Year],
+    SUM (
+      o.NumberOfUnits * o.CostOfUnit
+    ) AS
+    TotalOrderValue
+FROM
+    Customer c
+INNER JOIN Orders o
+    ON c.CustomerID = o.CustomerID
+GROUP BY
+    YEAR(o.OrderDate),
+    MONTH(o.OrderDate)
+ORDER BY
+    YEAR(o.OrderDate) DESC,
+    MONTH(o.OrderDate) DESC
+;
